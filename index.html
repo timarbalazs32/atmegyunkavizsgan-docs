@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>"atmegyunkavizsgan" docs</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2 family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+
+    <style>
+        /* Globális beállítások és CSS Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a; /* Mély sötétkék háttér */
+            color: #e2e8f0; /* Lágy fehér szöveg */
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Fix oldalsó navigációs sáv */
+        .sidebar {
+            width: 280px;
+            background-color: #1e293b; 
+            border-right: 1px solid #334155;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 2.5rem;
+            color: #ffffff;
+        }
+
+        .logo h2 span {
+            color: #38bdf8; /* Modern neon-kék kiemelés */
+        }
+
+        .nav-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748b;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .nav-menu ul {
+            list-style: none;
+        }
+
+        .nav-menu li {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-menu a {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-menu a:hover:not(.disabled) {
+            background-color: #334155;
+            color: #f8fafc;
+        }
+
+        .nav-menu a.active {
+            background-color: #0284c7;
+            color: #ffffff;
+        }
+
+        .nav-menu a.disabled {
+            color: #475569;
+            cursor: not-allowed;
+            font-size: 0.9rem;
+        }
+
+        /* Fő tartalom elrendezése */
+        .content {
+            margin-left: 280px; 
+            padding: 3rem 4rem;
+            width: calc(100% - 280px);
+            max-width: 1200px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #f8fafc;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-desc {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background-color: #334155;
+            margin-bottom: 2.5rem;
+        }
+
+        /* Dokumentációs kártyák elrendezése */
+        .doc-card {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .doc-card h2 {
+            font-size: 1.5rem;
+            color: #38bdf8;
+            margin-bottom: 1rem;
+        }
+
+        .doc-card p {
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        code:not(pre code) {
+            background-color: #0f172a;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: #f43f5e;
+        }
+
+        /* Kódblokkok stílusai */
+        .code-container {
+            border: 1px solid #334155;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .code-header {
+            background-color: #1e293b;
+            padding: 0.75rem 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        .copy-btn {
+            background-color: #334155;
+            color: #e2e8f0;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background-color: #475569;
+            color: #ffffff;
+        }
+
+        pre {
+            margin: 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.92rem;
+            line-height: 1.6;
+        }
+
+        /* Finomhangolás a highlight.js háttérnek, hogy egyezzen a dizájnnal */
+        .hljs {
+            background: #0f172a !important;
+            padding: 1.5rem !important;
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo">
+            <h2>"atmegyunkavizsgan" <span>docs</span></h2>
+        </div>
+        <nav class="nav-menu">
+            <p class="nav-title">Kategóriák</p>
+            <ul>
+                <li><a href="#backend" class="active">Backend</a></li>
+                <li><a href="#frontend" class="disabled">Frontend (Hamarosan)</a></li>
+                <li><a href="#wpf-csharp" class="disabled">WPF C# Console</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="content">
+        <section id="backend">
+            <h1>Backend Dokumentáció</h1>
+            <p class="section-desc">Ezen az oldalon a Node.js alapú backend fejlesztéshez kapcsolódó adatbázis-kezelési megoldásokat találod meg, különös tekintettel az SQLite3 variánsokra.</p>
+
+            <hr>
+
+            <div class="doc-card">
+                <h2>1. SQLite3 minta (Aszinkron / Callback alapú)</h2>
+                <p>Az alapvető <code>sqlite3</code> driver használata Express.js környezetben. Ez a könyvtár aszinkron módon, callback függvények segítségével kezeli a kéréseket, és modern <code>import</code> (ESM) szintaxist használ.</p>
+                
+                <div class="code-container">
+                    <div class="code-header">
+                        <span>index.js (sqlite3)</span>
+                        <button class="copy-btn" onclick="copyCode('code-sqlite3')">Másolás</button>
+                    </div>
+                    <pre><code id="code-sqlite3" class="language-javascript">import express from 'express';
+import cors from 'cors';
+import sqlite3 from 'sqlite3';
+
+const app = express();
+const port = 8000;
+
+app.use(cors());
+app.use(express.json());
+
+// Adatbázis kapcsolat létrehozása (sakila.db fájl)
+const db = new sqlite3.Database(`sakila.db`);
+
+// Alapértelmezett üdvözlő útvonal
+app.get('/', (req, res) => {
+    res.json({ message: 'Welcome to the Film Portal Backend' });
+});
+
+// Összes film lekérdezése (lapozással / pagination)
+app.get(`/films`, (req, res) => {
+    try {
+        let { limit, offset } = req.query;
+
+        // Alapértelmezett értékek, ha nincsenek megadva paraméterek
+        if (!limit || !offset) {
+            limit = 50;
+            offset = 0;
+        }
+
+        if (typeof limit !== "number" || typeof offset !== "number") {
+            return res.status(400).json({ error: "The parameters have invalid datatypes" });
+        }
+
+        const sql = `select * from film`;
+
+        // db.all: lekéri az összes sort a megadott SQL alapján
+        db.all(sql, [], function(error, rows) {
+            if (error) {
+                return res.status(400).json({ error: error.message });
+            }
+            return res.status(200).json(rows);
+        });
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
+});
+
+// Egy film lekérdezése ID alapján
+app.get(`/films/:id`, (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            return res.status(400).json({ message: `invalid parameter` });
+        }
+
+        // Biztonságos paraméterezett query a SQL injection ellen (?)
+        const sql = `select * from film where film_id = ?`;
+
+        db.all(sql, [parseInt(id)], function(error, rows) {
+            if (error) {
+                return res.status(404).json({ error: error.message });
+            }
+
+            if (rows.length > 0) {
+                return res.status(200).json(rows);
+            } else {
+                return res.status(404).json({ error: "Nincs ilyen film." });
+            }
+        });
+    } catch (error) {
+        return res.status(404).json({ error: error.message });
+    }
+});
+
+// Új film hozzáadása (POST kérés)
+app.post(`/films`, (req, res) => {
+    try {
+        const {
+            film_id, title, description, release_year, language_id, 
+            rental_duration, rental_rate, length, replacement_cost, 
+            rating, special_features
+        } = req.body;
+
+        // Kötelező mezők meglétének ellenőrzése
+        if (!film_id || !title || !description || !release_year || !language_id || 
+            !rental_duration || !rental_rate || !length || !replacement_cost || !rating || !special_features) {
+            return res.status(400).json({ error: `Egy kötelező paraméter hiányzik.` });
+        }
+
+        let date = new Date().toISOString();
+
+        const sql = `insert into film (film_id, title, description, release_year, language_id, rental_duration, rental_rate, length,
+            replacement_cost, rating, special_features, last_update) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
+
+        // db.run: Adatmódosító (INSERT, UPDATE, DELETE) műveletekhez használatos
+        db.run(sql, [film_id, title, description, release_year, language_id, rental_duration, rental_rate, length, replacement_cost, rating, special_features, date], function(error) {
+            if (error) {
+                return res.status(400).json({ error: error.message });
+            }
+            // this.lastID visszaadja a frissen generált rekord azonosítóját
+            return res.status(201).json({ id: this.lastID });
+        });
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
+});
+
+// Kategória alapú szűrés
+app.get(`/category-films/:category_id`, (req, res) => {
+    try {
+        const { category_id } = req.params;
+        const category_id_num = Number(category_id);
+        
+        const sql_getCategory = `select film.* from film join film_category on film.film_id = film_category.film_id where film_category.category_id = ?`;
+        
+        db.all(sql_getCategory, [category_id_num], function(error, rows) {
+            if (error) {
+                return res.status(400).json({ error: error.message });
+            }
+            return res.status(200).json(rows);
+        });
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
+});
+
+// Színészek listázása
+app.get(`/actors`, (req, res) => {
+    try {
+        const sql = `select * from actor`;
+        db.all(sql, [], function(error, rows) {
+            if (error) {
+                return res.status(400).json({ error: error.message });
+            }
+            return res.status(200).json(rows);
+        });
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
+});
+
+// Kategóriák listázása
+app.get(`/categories`, (req, res) => {
+    try {
+        const sql = `select * from category`;
+        db.all(sql, [], function(error, rows) {
+            if (error) {
+                return res.status(400).json({ error: error.message });
+            }
+            return res.status(200).json(rows);
+        });
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
+});
+
+// Vásárlók lekérése
+app.get(`/customers`, (req, res) => {
+    try {
+        const sql = `select * from customer`;
+        db.all(sql, [], function(error, rows) {
+            if (error) {
+                return res.status(400).json({ error: error.message });
+            }
+            return res.status(200).json(rows);
+        });
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
+});
+
+// Nyelvek lekérése
+app.get(`/languages`, (req, res) => {
+    try {
+        const sql = `select * from language`;
+        db.all(sql, [], function(error, rows) {
+            if (error) {
+                return res.status(400).json({ error: error.message });
+            }
+            return res.status(200).json(rows);
+        });
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
+});
+
+// Adott filmben játszó színészek lekérése JOIN segítségével
+app.get(`/film-actors/:id`, (req, res) => {
+    try {
+        const { id } = req.params;
+        const num_id = Number(id);
+
+        const sql_getFilm = `select actor.first_name FROM actor JOIN film_actor ON actor.actor_id = film_actor.actor_id WHERE film_actor.film_id = ?`;
+
+        db.all(sql_getFilm, [num_id], function(error, rows) {
+            if (error) {
+                return res.status(400).json({ error: error.message });
+            }
+            return res.status(200).json(rows);
+        });
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
+});
+
+// Új színész rögzítése
+app.post(`/actors`, (req, res) => {
+    try {
+        const { actor_id, first_name, last_name } = req.body;
+
+        if (!actor_id || !first_name || !last_name) {
+            return res.status(400).json({ message: "Hiányos paraméterek" });
+        }
+
+        const sql = `insert into actor (actor_id, first_name, last_name, last_update) values(?, ?, ?, ?)`;
+        let date = new Date().toISOString();
+
+        db.run(sql, [actor_id, first_name, last_name, date], function(error) {
+            if (error) {
+                return res.status(400).json({ message: error.message });
+            }
+            return res.status(201).json(this.lastID);
+        });
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
+});
+
+// Vásárló kölcsönzéseinek lekérése
+app.get(`/customer-rentals/:customer_id`, (req, res) => {
+    try {
+        const { customer_id } = req.params;
+
+        if (!customer_id) {
+            return res.status(400).json({ message: "Egy kötelező paraméter hiányzik." });
+        }
+
+        const sql = `select rental_id, rental_date, return_date from rental where customer_id = ?`;
+
+        db.all(sql, [customer_id], function(error, rows) {
+            if (error) {
+                return res.status(400).json(error.message);
+            }
+            return res.status(200).json(rows);
+        });
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
+});
+
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});</code></pre>
+                </div>
+            </div>
+
+            <div class="doc-card">
+                <h2>2. Better-SQLite3 minta (Szinkron / Mozi hálózat kezelő API)</h2>
+                <p>Ez a példa a <code>better-sqlite3</code> csomagot használja szinkron módon egy mozinézési és filmnyilvántartó rendszerhez. A projekt hagyományos <code>CommonJS (require)</code> modulfelkéréssel épül fel.</p>
+                
+                <div class="code-container">
+                    <div class="code-header">
+                        <span>index.js (better-sqlite3)</span>
+                        <button class="copy-btn" onclick="copyCode('code-better-sqlite3')">Másolás</button>
+                    </div>
+                    <pre><code id="code-better-sqlite3" class="language-javascript">const cors = require('cors');
+const express = require('express');
+const Database = require('better-sqlite3');
+
+const app = express();
+app.use(express.json());
+
+// TODO 1: CORS engedélyezése (cors csomag)
+app.use(cors());
+
+// TODO 3: mozihalo.db adatbázis használata
+const db = new Database('mozihalo.db');
+
+// TODO 5: GET / – üdvözlő JSON üzenet
+app.get("/", (req, res) => {
+  res.json({ message: "Üdvözlés" });
+});
+
+// TODO 6: GET /filmek - Az összes film lekérdezése
+app.get("/filmek", (req, res) => {
+  try {
+    const sql = "select * from filmek";
+    const result = db.prepare(sql).all(); // .all() az összes találatot visszaadja tömbként
+    return res.status(200).json(result);
+  }
+  catch (error) {
+    return res.status(500).json(error.message);
+  }
+});
+
+// TODO 7: GET /vetites/:vazon (JOIN: fcim, mnev, varos) - Vetítés adatai komplex lekérdezéssel
+app.get("/vetites/:vazon", (req, res) => {
+  try {
+    const vazon = req.params.vazon;
+    const sql = `SELECT filmek.fcim, mozik.mnev, mozik.varos 
+                 FROM vetitesek 
+                 INNER JOIN mozik ON mozik.mazon = vetitesek.mazon 
+                 INNER JOIN filmek ON filmek.fazon = vetitesek.fazon 
+                 WHERE vetitesek.vazon = ?`;
+    
+    const result = db.prepare(sql).get(Number(vazon)); // .get() csak egyetlen objektumot ad vissza
+    return res.status(200).json(result);
+  }
+  catch (error) {
+    return res.status(500).json(error.message);
+  }
+});
+
+// TODO 8: POST /filmek - Új film felvétele a rendszerbe
+app.post("/filmek", (req, res) => {
+  try {
+    const { fazon, fcim, rendezo, gyartasi_ev, mufaj, jegypont } = req.body;
+    const sql = "insert into filmek (fazon, fcim, rendezo, gyartasi_ev, mufaj, jegypont) values (?, ?, ?, ?, ?, ?)";
+    
+    const result = db.prepare(sql).run(fazon, fcim, rendezo, gyartasi_ev, mufaj, jegypont); // .run() adatmódosításra
+    return res.status(201).json({ message: "Film sikeresen hozzáadva", id: result.lastInsertRowid });
+  }
+  catch (error) {
+    return res.status(500).json(error.message);
+  }
+});
+
+// TODO 9: DELETE /film/:fazon - Film törlése azonosító alapján
+app.delete("/film/:fazon", (req, res) => {
+  try {
+    const fazon = Number(req.params.fazon);
+    const sql = "delete from filmek where fazon = ?";
+    db.prepare(sql).run(fazon);
+    return res.status(200).json({ message: "Film sikeresen törölve" });
+  }
+  catch (error) {
+    return res.status(500).json(error.message);
+  }
+});
+
+// TODO 10: POST /mozik - Új mozi helyszín rögzítése
+app.post("/mozik", (req, res) => {
+  const { mazon, mnev, varos, termek_szama } = req.body;
+  try {
+    const sql = "insert into mozik (mazon, mnev, varos, termek_szama) values (?, ?, ?, ?)";
+    const result = db.prepare(sql).run(mazon, mnev, varos, termek_szama);
+    return res.status(201).json({ message: "Mozi sikeresen hozzáadva", id: result.lastInsertRowid });
+  }
+  catch (error) {
+    return res.status(500).json(error.message);
+  }
+});
+
+// TODO 11: PATCH /vetites/:vazon - Vetítési adatok részleges frissítése
+app.patch("/vetites/:vazon", (req, res) => {
+  try {
+    const vazon = Number(req.params.vazon);
+    const { fazon, mazon, kezdete } = req.body;
+    const sql = "update vetitesek set fazon = ?, mazon = ?, kezdete = ? where vazon = ?";
+    db.prepare(sql).run(fazon, mazon, kezdete, vazon);
+    return res.status(200).json({ message: "Vetítés sikeresen frissítve" });
+  }
+  catch (error)
+  {
+    return res.status(500).json(error.message);
+  }
+});
+
+// TODO 2: 8000-es port konfigurálása és szerver indítása
+const PORT = 8000;
+app.listen(PORT, () => {
+  console.log(`Szerver fut: http://localhost:${PORT}`);
+});</code></pre>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Inicializáljuk a kód kiemelést az oldalon
+        hljs.highlightAll();
+
+        function copyCode(elementId) {
+            const codeText = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(codeText).then(() => {
+                alert("Kód sikeresen kimásolva a vágólapra!");
+            }).catch(err => {
+                console.error("Hiba történt a másolás során: ", err);
+            });
+        }
+    </script>
+</body>
+</html>
