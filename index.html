@@ -241,6 +241,8 @@
 
             <div class="doc-card">
                 <h2>1. SQLite3 minta (Aszinkron / Callback alapú)</h2>
+                <p>Az alapvető <code>sqlite3</code> driver használata Express.js környezetben. Ez a könyvtár aszinkron módon, callback függvények segítségével kezeli a kéréseket, és modern <code>import</code> (ESM) szintaxist használ.</p>
+                
                 <div class="code-container">
                     <div class="code-header">
                         <span>index.js (sqlite3)</span>
@@ -284,6 +286,122 @@ app.listen(port, () => {
 });</code></pre>
                 </div>
             </div>
+
+            <div class="doc-card">
+                <h2>2. Better-SQLite3 minta (Szinkron / Mozi hálózat kezelő API)</h2>
+                <p>Ez a példa a <code>better-sqlite3</code> csomagot használja szinkron módon egy mozinézési és filmnyilvántartó rendszerhez. VIZSGATIPP: Figyelj a metódusokra! Több soros válaszhoz <code>.all()</code>, egyetlen sorhoz <code>.get()</code>, adatmódosításhoz (INSERT, DELETE, UPDATE) pedig <code>.run()</code> kell.</p>
+                
+                <div class="code-container">
+                    <div class="code-header">
+                        <span>index.js (better-sqlite3)</span>
+                        <button class="copy-btn" onclick="copyCode('code-better-sqlite3')">Másolás</button>
+                    </div>
+                    <pre><code id="code-better-sqlite3" class="language-javascript">const cors = require('cors');
+const express = require('express');
+const Database = require('better-sqlite3');
+
+const app = express();
+app.use(express.json());
+
+// TODO 1: CORS engedélyezése (cors csomag)
+app.use(cors());
+
+// TODO 3: mozihalo.db adatbázis használata
+const db = new Database('mozihalo.db');
+
+// TODO 5: GET / – üdvözlő JSON üzenet
+app.get("/", (req, res) => {
+  res.json({ message: "Üdvözlés" });
+});
+
+// TODO 6: GET /filmek (Minden film lekérése)
+app.get("/filmek", (req, res) => {
+  try {
+    const sql = "select * from filmek";
+    const result = db.prepare(sql).all(); // VIZSGATIPP: Mindig .all() kell, ha listát várunk vissza!
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json(error.message);
+  }
+});
+
+// TODO 7: GET /vetites/:vazon (JOIN lekérdezés paraméter alapján)
+app.get("/vetites/:vazon", (req, res) => {
+  try {
+    const vazon = req.params.vazon;
+    const sql = `
+      SELECT filmek.fcim, mozik.mnev, mozik.varos 
+      FROM vetitesek 
+      INNER JOIN mozik ON mozik.mazon = vetitesek.mazon 
+      INNER JOIN filmek ON filmek.fazon = vetitesek.fazon 
+      WHERE vetitesek.vazon = ?`;
+    
+    // VIZSGATIPP: .get() kell, mert a feltétel egyedi ID-ra szűr, így csak 1 darab objektumot várunk vissza!
+    const result = db.prepare(sql).get(Number(vazon)); 
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json(error.message);
+  }
+});
+
+// TODO 8: POST /filmek (Új film beszúrása)
+app.post("/filmek", (req, res) => {
+  try {
+    const { fazon, fcim, rendezo, gyartasi_ev, mufaj, jegypont } = req.body;
+    const sql = "insert into filmek (fazon, fcim, rendezo, gyartasi_ev, mufaj, jegypont) values (?, ?, ?, ?, ?, ?)";
+    
+    // VIZSGATIPP: Adatmódosításnál .run() kell, ami visszaadja a beszúrt sor ID-ját a .lastInsertRowid tulajdonságban
+    const result = db.prepare(sql).run(fazon, fcim, rendezo, gyartasi_ev, mufaj, jegypont);
+    return res.status(201).json({ message: "Film sikeresen hozzáadva", id: result.lastInsertRowid });
+  } catch (error) {
+    return res.status(500).json(error.message);
+  }
+});
+
+// TODO 9: DELETE /film/:fazon (Film törlése)
+app.delete("/film/:fazon", (req, res) => {
+  try {
+    const fazon = Number(req.params.fazon);
+    const sql = "delete from filmek where fazon = ?";
+    db.prepare(sql).run(fazon); // Törléshez szintén .run() kell
+    return res.status(200).json({ message: "Film sikeresen törölve" });
+  } catch (error) {
+    return res.status(500).json(error.message);
+  }
+});
+
+// TODO 10: POST /mozik (Új mozi beszúrása)
+app.post("/mozik", (req, res) => {
+  const { mazon, mnev, varos, termek_szama } = req.body;
+  try {
+    const sql = "insert into mozik (mazon, mnev, varos, termek_szama) values (?, ?, ?, ?)";
+    const result = db.prepare(sql).run(mazon, mnev, varos, termek_szama);
+    return res.status(201).json({ message: "Mozi sikeresen hozzáadva", id: result.lastInsertRowid });
+  } catch (error) {
+    return res.status(500).json(error.message);
+  }
+});
+
+// TODO 11: PATCH /vetites/:vazon (Létező vetítés módosítása)
+app.patch("/vetites/:vazon", (req, res) => {
+  try {
+    const vazon = Number(req.params.vazon);
+    const { fazon, mazon, kezdete } = req.body;
+    const sql = "update vetitesek set fazon = ?, mazon = ?, kezdete = ? where vazon = ?";
+    db.prepare(sql).run(fazon, mazon, kezdete, vazon); // Módosításhoz is .run() dukál
+    return res.status(200).json({ message: "Vetítés sikeresen frissítve" });
+  } catch (error) {
+    return res.status(500).json(error.message);
+  }
+});
+
+// TODO 2: 8000-es port beállítása és hallgatása
+const PORT = 8000;
+app.listen(PORT, () => {
+  console.log(`Szerver fut: http://localhost:${PORT}`);
+});</code></pre>
+                </div>
+            </div>
         </section>
 
         <hr>
@@ -294,34 +412,21 @@ app.listen(port, () => {
 
             <div class="doc-card">
                 <h2>1. Megelőző lépések & Projektszintű parancsok</h2>
-                <p>A projekt inicializálása és a szükséges komponensek, szervizek generálása terminálból:</p>
-                
                 <div class="code-container">
                     <div class="code-header">
                         <span>Terminal parancsok</span>
                         <button class="copy-btn" onclick="copyCode('code-cli')">Másolás</button>
                     </div>
-                    <pre><code id="code-cli" class="language-bash"># Projekt inicializálása Node.js környezetben
-npm init -y
-
-# Angular CLI telepítése a projektbe
+                    <pre><code id="code-cli" class="language-bash">npm init -y
 npm i @angular/cli
-
-# Új Angular projekt létrehozása
 npx ng new "projekt neve"
-
-# Új komponens létrehozása
 npx ng generate component "komponens neve"
-
-# Új API kezelő szerviz létrehozása
 npx ng generate service "szervíz neve"</code></pre>
                 </div>
             </div>
 
             <div class="doc-card">
                 <h2>2. HTTP kliens beállítása (app.config.ts)</h2>
-                <p>Ahhoz, hogy az alkalmazásunk tudjon külső API-khoz csatlakozni, engedélyeznünk kell a HTTP klienst az alkalmazás konfigurációs fájljában:</p>
-                
                 <div class="code-container">
                     <div class="code-header">
                         <span>app.config.ts</span>
@@ -332,7 +437,7 @@ import { provideHttpClient } from '@angular/common/http';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideHttpClient() // HTTP kliens biztosítása az alkalmazásban
+    provideHttpClient()
   ]
 };</code></pre>
                 </div>
@@ -340,8 +445,6 @@ export const appConfig: ApplicationConfig = {
 
             <div class="doc-card">
                 <h2>3. Tanuló Szerviz megvalósítása (tanulo.service.ts)</h2>
-                <p>A szerviz felel az aszinkron API hívások (GET, POST, DELETE) lebonyolításáért és az adatok típusosságáért (Interface):</p>
-                
                 <div class="code-container">
                     <div class="code-header">
                         <span>tanulo-service.ts</span>
@@ -351,7 +454,6 @@ export const appConfig: ApplicationConfig = {
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-// Tanuló adatstruktúra leírása
 export interface Tanulo {
   oktazon: number;
   nev: string;
@@ -364,22 +466,17 @@ export interface Tanulo {
   providedIn: 'root',
 })
 export class TanuloService {
-
   private apiUrl = 'http://localhost:8000/tanulok';
-
   constructor(private http: HttpClient) {}
 
-  // Összes tanuló lekérése (GET)
   getOsszesTanulo(): Observable<Tanulo[]> {
     return this.http.get<Tanulo[]>(this.apiUrl);
   }
 
-  // Tanuló törlése azonosító alapján (DELETE)
   deleteTanulo(oktazon: number): Observable<any> {
     return this.http.delete(`http://localhost:8000/tanulo/id/${oktazon}`);
   }
 
-  // Új tanuló rögzítése (POST)
   addTanulo(tanulo: Tanulo): Observable<Tanulo> {
     return this.http.post<Tanulo>("http://localhost:8000/tanulo", tanulo);
   }
@@ -389,8 +486,6 @@ export class TanuloService {
 
             <div class="doc-card">
                 <h2>4. Fő lista komponens (tanulok.ts & tanulok.html)</h2>
-                <p>Ez a komponens kéri le az adatokat a szerviztől az <code>ngOnInit</code> életciklus-módszerben, majd a HTML-ben végigiterál rajtuk:</p>
-                
                 <div class="code-container">
                     <div class="code-header">
                         <span>tanulok.ts</span>
@@ -410,13 +505,11 @@ import { TanuloCard } from "../tanulo-card/tanulo-card";
 })
 export class Tanulok implements OnInit {
   TanulokLista: Tanulo[] = [];
-
   constructor(private tanuloService: TanuloService) {}
 
   ngOnInit() {
     this.tanuloService.getOsszesTanulo().subscribe((data) => {
       this.TanulokLista = data;
-      console.log(this.TanulokLista);
     });
   }
 }</code></pre>
@@ -428,7 +521,6 @@ export class Tanulok implements OnInit {
                         <button class="copy-btn" onclick="copyCode('code-tanulok-html')">Másolás</button>
                     </div>
                     <pre><code id="code-tanulok-html" class="language-xml">&lt;p&gt;tanulok&lt;/p&gt;
-
 &lt;div class="grid grid-cols-3 gap-4"&gt;
   @for (tanulo of TanulokLista; track tanulo.oktazon) {
     &lt;app-tanulo-card [tanuloInfo]="tanulo"&gt;&lt;/app-tanulo-card&gt;
@@ -439,8 +531,6 @@ export class Tanulok implements OnInit {
 
             <div class="doc-card">
                 <h2>5. Gyermek kártya komponens (tanulo-card)</h2>
-                <p>A kártya komponens kapja meg az adatot szülőtől az <code>@Input()</code> dekorátor segítségével, valamint kezeli a törlés gomb eseményét:</p>
-                
                 <div class="code-container">
                     <div class="code-header">
                         <span>tanulo-card.ts</span>
@@ -454,29 +544,17 @@ import { TanuloService, Tanulo } from '../../services/tanulo-service';
   standalone: true,
   imports: [],
   templateUrl: './tanulo-card.html',
-  styleUrl: './tanulo-card.css',
 })
 export class TanuloCard implements OnInit {
   @Input() tanuloInfo: Tanulo = {} as Tanulo;
-
   constructor(private tanuloService: TanuloService) {}
-
-  ngOnInit() {
-    this.test();
-  }
-
-  test() {
-    console.log(this.tanuloInfo.nev);
-  }
+  ngOnInit() { this.test(); }
+  test() { console.log(this.tanuloInfo.nev); }
 
   torles() {
     this.tanuloService.deleteTanulo(this.tanuloInfo.oktazon).subscribe({
-      next: () => {
-        console.log("Sikeresen törölve az API-ból");
-      },
-      error: (err) => {
-        console.error("Hiba a törlés során:", err);
-      }
+      next: () => { console.log("Sikeresen törölve"); },
+      error: (err) => { console.error(err); }
     });
   }
 }</code></pre>
@@ -487,59 +565,43 @@ export class TanuloCard implements OnInit {
                         <span>tanulo-card.html</span>
                         <button class="copy-btn" onclick="copyCode('code-card-html')">Másolás</button>
                     </div>
-                    <pre><code id="code-card-html" class="language-xml">&lt;div class="w-96 max-w-md px-8 py-4 m-5 mt-16 bg-green-300 rounded-lg shadow-lg dark:bg-gray-800"&gt;
-    &lt;div class="flex justify-center -mt-16 md:justify-end"&gt;
-        &lt;img class="object-cover w-20 h-20 border-2 border-blue-500 rounded-full dark:border-blue-400" alt="Avatar" src="studying.png" /&gt;
-    &lt;/div&gt;
-
-    &lt;h2 class="mt-2 text-xl font-semibold text-gray-800 dark:text-white md:mt-0"&gt;{{ tanuloInfo.nev }}&lt;/h2&gt;
-
-    &lt;p class="mt-2 text-sm text-gray-600 dark:text-gray-200"&gt;Oktatási azonosító: {{ tanuloInfo.oktazon }}&lt;/p&gt;
-    &lt;p class="mt-2 text-sm text-gray-600 dark:text-gray-200"&gt;Hozott pontok: {{ tanuloInfo.hozott }}&lt;/p&gt;
-    &lt;p class="mt-2 text-sm text-gray-600 dark:text-gray-200"&gt;Központi Magyar: {{ tanuloInfo.kpmagy }}&lt;/p&gt;
-    &lt;p class="mt-2 text-sm text-gray-600 dark:text-gray-200"&gt;Központi Matek: {{ tanuloInfo.kpmat }}&lt;/p>
-
-    &lt;div class="flex justify-end mt-4"&gt;
-        &lt;button class="btn bg-green-700 text-green-300 px-4 py-2 rounded" (click)="torles()"&gt;Törlés&lt;/button&gt;
-    &lt;/div&gt;
+                    <pre><code id="code-card-html" class="language-xml">&lt;div class="w-96 max-w-md px-8 py-4 m-5 mt-16 bg-green-300 rounded-lg shadow-lg"&gt;
+    &lt;h2 class="text-xl font-semibold text-gray-800"&gt;{{ tanuloInfo.nev }}&lt;/h2&gt;
+    &lt;p&gt;Oktatási azonosító: {{ tanuloInfo.oktazon }}&lt;/p&gt;
+    &lt;p&gt;Hozott pontok: {{ tanuloInfo.hozott }}&lt;/p&gt;
+    &lt;p&gt;KpMagy: {{ tanuloInfo.kpmagy }}&lt;/p&gt;
+    &lt;p&gt;KpMat: {{ tanuloInfo.kpmat }}&lt;/p&gt;
+    &lt;button class="bg-green-700 text-white px-4 py-2 rounded mt-2" (click)="torles()"&gt;Törlés&lt;/button&gt;
 &lt;/div&gt;</code></pre>
                 </div>
             </div>
 
             <div class="doc-card">
                 <h2>6. Adatfelvételi Űrlap (Template-driven Form)</h2>
-                <p>Új adatok rögzítése a backend felé az Angular <code>FormsModule</code> csomagjának segítségével.</p>
-                
                 <div class="code-container">
                     <div class="code-header">
                         <span>tanulo-form.ts</span>
                         <button class="copy-btn" onclick="copyCode('code-form-ts')">Másolás</button>
                     </div>
                     <pre><code id="code-form-ts" class="language-typescript">import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms'; // <-- KÖTELEZŐ import a formokhoz!
+import { FormsModule } from '@angular/forms'; 
 import { TanuloService } from '../../services/tanulo-service';
 
 @Component({
   selector: 'app-tanulo-form',
   standalone: true,
-  imports: [FormsModule], // <-- Be kell tenni az imports tömbbe is!
+  imports: [FormsModule], 
   templateUrl: './tanulo-form.html',
   styleUrl: './tanulo-form.css',
 })
 export class TanuloForm {
-
   constructor(private TanuloService: TanuloService) {}
 
   onSubmit(form: any) {
     console.log(form.value);
-
     this.TanuloService.addTanulo(form.value).subscribe({
-      next: (response) => {
-        console.log("Sikeres hozzáadás:", response);
-      },
-      error: (err) => {
-        console.error("Hiba a hozzáadás során:", err);
-      }
+      next: (response) => { console.log("Sikeres hozzáadás:", response); },
+      error: (err) => { console.error("Hiba a hozzáadás során:", err); }
     });
   }
 }</code></pre>
@@ -551,58 +613,31 @@ export class TanuloForm {
                         <button class="copy-btn" onclick="copyCode('code-form-html')">Másolás</button>
                     </div>
                     <pre><code id="code-form-html" class="language-xml">&lt;p&gt;Új tanuló felvétele&lt;/p&gt;
-
 &lt;div&gt;
   &lt;div class="max-w-md mx-auto mt-10 bg-white shadow-lg rounded-lg overflow-hidden"&gt;
-    &lt;div class="text-2xl py-4 px-6 bg-green-600 text-white text-center font-bold uppercase"&gt;
-        Felirat
-    &lt;/div&gt;
+    &lt;div class="text-2xl py-4 px-6 bg-green-600 text-white text-center font-bold uppercase"&gt;Felirat&lt;/div&gt;
     &lt;form #newStudentForm="ngForm" class="py-4 px-6" (ngSubmit)="onSubmit(newStudentForm)"&gt;
         &lt;div class="mb-4"&gt;
-            &lt;label class="block text-gray-700 font-bold mb-2" for="azonosito"&gt;
-                Oktatási azonosító
-            &lt;/label&gt;
-            &lt;input
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="azonosito" type="text" required name="oktazon" ngModel/&gt;
+            &lt;label class="block text-gray-700 font-bold mb-2" for="azonosito"&gt;Oktatási azonosító&lt;/label&gt;
+            &lt;input class="shadow border rounded w-full py-2 px-3 text-gray-700" id="azonosito" type="text" required name="oktazon" ngModel/&gt;
 
-            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="nev"&gt;
-                Név
-            &lt;/label&gt;
-            &lt;input
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="nev" type="text" required name="nev" ngModel/&gt;
+            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="nev"&gt;Név&lt;/label&gt;
+            &lt;input class="shadow border rounded w-full py-2 px-3 text-gray-700" id="nev" type="text" required name="nev" ngModel/&gt;
         &lt;/div&gt;
 
         &lt;div class="mb-4"&gt;
-            &lt;label class="block text-gray-700 font-bold mb-2" for="hozott"&gt;
-                Hozott pontszám
-            &lt;/label&gt;
-            &lt;input
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="hozott" type="number" required name="hozott" ngModel/&gt;
+            &lt;label class="block text-gray-700 font-bold mb-2" for="hozott"&gt;Hozott pontszám&lt;/label&gt;
+            &lt;input class="shadow border rounded w-full py-2 px-3 text-gray-700" id="hozott" type="number" required name="hozott" ngModel/&gt;
 
-            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="kpmagy"&gt;
-                KpMagy
-            &lt;/label&gt;
-            &lt;input
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="kpmagy" type="number" required name="kpmagy" ngModel/&gt;
+            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="kpmagy"&gt;KpMagy&lt;/label&gt;
+            &lt;input class="shadow border rounded w-full py-2 px-3 text-gray-700" id="kpmagy" type="number" required name="kpmagy" ngModel/&gt;
 
-            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="kpmat"&gt;
-                KpMat
-            &lt;/label&gt;
-            &lt;input
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="kpmat" type="number" required name="kpmat" ngModel/&gt;
+            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="kpmat"&gt;KpMat&lt;/label&gt;
+            &lt;input class="shadow border rounded w-full py-2 px-3 text-gray-700" id="kpmat" type="number" required name="kpmat" ngModel/&gt;
         &lt;/div&gt;
 
         &lt;div class="flex items-center justify-center mb-4"&gt;
-            &lt;button
-                class="bg-green-600 text-white py-2 px-4 rounded hover:bg-gray-800 focus:outline-none focus:shadow-outline"
-                type="submit"&gt;
-                Gomb
-            &lt;/button&gt;
+            &lt;button class="bg-green-600 text-white py-2 px-4 rounded hover:bg-gray-800" type="submit"&gt;Gomb&lt;/button&gt;
         &lt;/div&gt;
     &lt;/form&gt;
   &lt;/div&gt;
@@ -629,7 +664,7 @@ export const routes: Routes = [
   { path: '', component: Main },
   { path: "tanulok", component: Tanulok },
   { path: 'tanuloForm', component: TanuloForm },
-  { path: '**', redirectTo: '' } // Hibás URL esetén átirányítás a főoldalra
+  { path: '**', redirectTo: '' }
 ];</code></pre>
                 </div>
 
@@ -640,18 +675,16 @@ export const routes: Routes = [
                         <button class="copy-btn" onclick="copyCode('code-menu-ts')">Másolás</button>
                     </div>
                     <pre><code id="code-menu-ts" class="language-typescript">import { Component } from '@angular/core';
-import { RouterOutlet, RouterLink } from '@angular/router'; // <-- KÖTELEZŐ importok!
+import { RouterOutlet, RouterLink } from '@angular/router'; 
 
 @Component({
   standalone: true,
   selector: 'app-menu',
-  imports: [RouterOutlet, RouterLink], // Regisztráció a sablonhoz
+  imports: [RouterOutlet, RouterLink], 
   templateUrl: './menu.html',
   styleUrl: './menu.css',
 })
-export class Menu {
-  // A routerOutlet és routerLink működtetéséhez szükséges modulok importálva vannak
-}</code></pre>
+export class Menu {}</code></pre>
                 </div>
 
                 <h3>C) A Navigációs Sablon (menu.html)</h3>
@@ -674,7 +707,6 @@ export class Menu {
     &lt;/div&gt;
   &lt;/nav&gt;
 &lt;/div&gt;
-
 &lt;router-outlet&gt;&lt;/router-outlet&gt;</code></pre>
                 </div>
             </div>
