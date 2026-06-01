@@ -318,7 +318,7 @@ app.get("/", (req, res) => {
 app.get("/filmek", (req, res) => {
   try {
     const sql = "select * from filmek";
-    const result = db.prepare(sql).all(); // VIZSGATIPP: Mindig .all() kell, ha listát várunk vissza!
+    const result = db.prepare(sql).all(); 
     return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json(error.message);
@@ -336,7 +336,6 @@ app.get("/vetites/:vazon", (req, res) => {
       INNER JOIN filmek ON filmek.fazon = vetitesek.fazon 
       WHERE vetitesek.vazon = ?`;
     
-    // VIZSGATIPP: .get() kell, mert a feltétel egyedi ID-ra szűr, így csak 1 darab objektumot várunk vissza!
     const result = db.prepare(sql).get(Number(vazon)); 
     return res.status(200).json(result);
   } catch (error) {
@@ -350,7 +349,6 @@ app.post("/filmek", (req, res) => {
     const { fazon, fcim, rendezo, gyartasi_ev, mufaj, jegypont } = req.body;
     const sql = "insert into filmek (fazon, fcim, rendezo, gyartasi_ev, mufaj, jegypont) values (?, ?, ?, ?, ?, ?)";
     
-    // VIZSGATIPP: Adatmódosításnál .run() kell, ami visszaadja a beszúrt sor ID-ját a .lastInsertRowid tulajdonságban
     const result = db.prepare(sql).run(fazon, fcim, rendezo, gyartasi_ev, mufaj, jegypont);
     return res.status(201).json({ message: "Film sikeresen hozzáadva", id: result.lastInsertRowid });
   } catch (error) {
@@ -363,7 +361,7 @@ app.delete("/film/:fazon", (req, res) => {
   try {
     const fazon = Number(req.params.fazon);
     const sql = "delete from filmek where fazon = ?";
-    db.prepare(sql).run(fazon); // Törléshez szintén .run() kell
+    db.prepare(sql).run(fazon); 
     return res.status(200).json({ message: "Film sikeresen törölve" });
   } catch (error) {
     return res.status(500).json(error.message);
@@ -388,14 +386,13 @@ app.patch("/vetites/:vazon", (req, res) => {
     const vazon = Number(req.params.vazon);
     const { fazon, mazon, kezdete } = req.body;
     const sql = "update vetitesek set fazon = ?, mazon = ?, kezdete = ? where vazon = ?";
-    db.prepare(sql).run(fazon, mazon, kezdete, vazon); // Módosításhoz is .run() dukál
+    db.prepare(sql).run(fazon, mazon, kezdete, vazon); 
     return res.status(200).json({ message: "Vetítés sikeresen frissítve" });
   } catch (error) {
     return res.status(500).json(error.message);
   }
 });
 
-// TODO 2: 8000-es port beállítása és hallgatása
 const PORT = 8000;
 app.listen(PORT, () => {
   console.log(`Szerver fut: http://localhost:${PORT}`);
@@ -454,6 +451,7 @@ export const appConfig: ApplicationConfig = {
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+// KÖTELEZŐ: Exportált interfész az adatok típusosságához!
 export interface Tanulo {
   oktazon: number;
   nev: string;
@@ -492,7 +490,7 @@ export class TanuloService {
                         <button class="copy-btn" onclick="copyCode('code-tanulok-ts')">Másolás</button>
                     </div>
                     <pre><code id="code-tanulok-ts" class="language-typescript">import { Component, OnInit } from '@angular/core';
-import { TanuloService, Tanulo } from '../../services/tanulo-service';
+import { TanuloService, Tanulo } from '../../services/tanulo-service'; // <-- Javítva: Tanulo importálva!
 import { CommonModule } from '@angular/common';
 import { TanuloCard } from "../tanulo-card/tanulo-card";
 
@@ -504,7 +502,7 @@ import { TanuloCard } from "../tanulo-card/tanulo-card";
   styleUrl: './tanulok.css',
 })
 export class Tanulok implements OnInit {
-  TanulokLista: Tanulo[] = [];
+  TanulokLista: Tanulo[] = []; // Így már ismeri a tömb a Tanulo típust
   constructor(private tanuloService: TanuloService) {}
 
   ngOnInit() {
@@ -537,7 +535,7 @@ export class Tanulok implements OnInit {
                         <button class="copy-btn" onclick="copyCode('code-card-ts')">Másolás</button>
                     </div>
                     <pre><code id="code-card-ts" class="language-typescript">import { Component, Input, OnInit } from '@angular/core';
-import { TanuloService, Tanulo } from '../../services/tanulo-service';
+import { TanuloService, Tanulo } from '../../services/tanulo-service'; // <-- Javítva: Tanulo importálva!
 
 @Component({
   selector: 'app-tanulo-card',
@@ -546,7 +544,7 @@ import { TanuloService, Tanulo } from '../../services/tanulo-service';
   templateUrl: './tanulo-card.html',
 })
 export class TanuloCard implements OnInit {
-  @Input() tanuloInfo: Tanulo = {} as Tanulo;
+  @Input() tanuloInfo: Tanulo = {} as Tanulo; // Erősen típusos bemeneti adat szülőtől
   constructor(private tanuloService: TanuloService) {}
   ngOnInit() { this.test(); }
   test() { console.log(this.tanuloInfo.nev); }
@@ -618,27 +616,27 @@ export class TanuloForm {
     &lt;div class="text-2xl py-4 px-6 bg-green-600 text-white text-center font-bold uppercase"&gt;Felirat&lt;/div&gt;
     &lt;form #newStudentForm="ngForm" class="py-4 px-6" (ngSubmit)="onSubmit(newStudentForm)"&gt;
         &lt;div class="mb-4"&gt;
-            &lt;label class="block text-gray-700 font-bold mb-2" for="azonosito"&gt;Oktatási azonosító&lt;/label&gt;
+            &lt;label class="block text-gray-700 font-bold mb-2" for="azonosito"&gt;Oktatási azonosító&lt;/label>
             &lt;input class="shadow border rounded w-full py-2 px-3 text-gray-700" id="azonosito" type="text" required name="oktazon" ngModel/&gt;
 
-            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="nev"&gt;Név&lt;/label&gt;
+            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="nev"&gt;Név&lt;/label>
             &lt;input class="shadow border rounded w-full py-2 px-3 text-gray-700" id="nev" type="text" required name="nev" ngModel/&gt;
         &lt;/div&gt;
 
         &lt;div class="mb-4"&gt;
-            &lt;label class="block text-gray-700 font-bold mb-2" for="hozott"&gt;Hozott pontszám&lt;/label&gt;
+            &lt;label class="block text-gray-700 font-bold mb-2" for="hozott"&gt;Hozott pontszám&lt;/label>
             &lt;input class="shadow border rounded w-full py-2 px-3 text-gray-700" id="hozott" type="number" required name="hozott" ngModel/&gt;
 
-            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="kpmagy"&gt;KpMagy&lt;/label&gt;
+            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="kpmagy"&gt;KpMagy&lt;/label>
             &lt;input class="shadow border rounded w-full py-2 px-3 text-gray-700" id="kpmagy" type="number" required name="kpmagy" ngModel/&gt;
 
-            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="kpmat"&gt;KpMat&lt;/label&gt;
+            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="kpmat"&gt;KpMat&lt;/label>
             &lt;input class="shadow border rounded w-full py-2 px-3 text-gray-700" id="kpmat" type="number" required name="kpmat" ngModel/&gt;
-        &lt;/div&gt;
+        &lt;/div>
 
         &lt;div class="flex items-center justify-center mb-4"&gt;
-            &lt;button class="bg-green-600 text-white py-2 px-4 rounded hover:bg-gray-800" type="submit"&gt;Gomb&lt;/button&gt;
-        &lt;/div&gt;
+            &lt;button class="bg-green-600 text-white py-2 px-4 rounded hover:bg-gray-800" type="submit"&gt;Gomb&lt;/button>
+        &lt;/div>
     &lt;/form&gt;
   &lt;/div&gt;
 &lt;/div&gt;</code></pre>
