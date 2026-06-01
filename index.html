@@ -530,7 +530,7 @@ export class TanuloCard implements OnInit {
                     <pre><code id="code-card-html" class="language-xml">&lt;div class="w-96 max-w-md px-8 py-4 m-5 mt-16 bg-green-300 rounded-lg shadow-lg dark:bg-gray-800"&gt;
     &lt;div class="flex justify-center -mt-16 md:justify-end"&gt;
         &lt;img class="object-cover w-20 h-20 border-2 border-blue-500 rounded-full dark:border-blue-400" alt="Avatar" src="studying.png" /&gt;
-    &lt;/div&gt;
+    &lt;/div>
 
     &lt;h2 class="mt-2 text-xl font-semibold text-gray-800 dark:text-white md:mt-0"&gt;{{ tanuloInfo.nev }}&lt;/h2&gt;
 
@@ -542,6 +542,119 @@ export class TanuloCard implements OnInit {
     &lt;div class="flex justify-end mt-4"&gt;
         &lt;button class="btn bg-green-700 text-green-300 px-4 py-2 rounded" (click)="torles()"&gt;Törlés&lt;/button&gt;
     &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+                </div>
+            </div>
+
+            <div class="doc-card">
+                <h2>6. Adatfelvételi Űrlap (Template-driven Form)</h2>
+                <p>Új adatok rögzítése a backend felé az Angular <code>FormsModule</code> csomagjának segítségével. VIZSGATIPP: A HTML-ben az input mezőknek kötelező megadni a <code>name</code> attribútumot és a <code>ngModel</code> direktívát, különben az Angular nem fogja beolvasni az értéküket!</p>
+                
+                <div class="code-container">
+                    <div class="code-header">
+                        <span>tanulo-form.ts</span>
+                        <button class="copy-btn" onclick="copyCode('code-form-ts')">Másolás</button>
+                    </div>
+                    <pre><code id="code-form-ts" class="language-typescript">import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms'; // <-- KÖTELEZŐ import a formokhoz!
+import { TanuloService } from '../../services/tanulo-service';
+
+@Component({
+  selector: 'app-tanulo-form',
+  standalone: true, // Modern Angular 17+ komponens jelleg
+  imports: [FormsModule], // <-- Be kell tenni az imports tömbbe is!
+  templateUrl: './tanulo-form.html',
+  styleUrl: './tanulo-form.css',
+})
+export class TanuloForm {
+
+  // A szerviz bejekttálása a konstruktorba, hogy elérjük az addTanulo metódust
+  constructor(private TanuloService: TanuloService) {}
+
+  // Az űrlap elküldésekor lefutó függvény (a HTML-ből kapja meg a form referenciát)
+  onSubmit(form: any) {
+    // form.value tartalmazza az input mezők értékeit kulcs-érték párokként (pl: { oktazon: ..., nev: ... })
+    console.log("Űrlap aktuális értéke:", form.value);
+
+    // Meghívjuk a szerviz POST kérését és feliratkozunk rá (subscribe)
+    this.TanuloService.addTanulo(form.value).subscribe({
+      next: (response) => {
+        console.log("Sikeres hozzáadás a szerverhez:", response);
+        form.reset(); // VIZSGATIPP: Sikeres mentés után ürítsük ki az űrlapot!
+      },
+      error: (err) => {
+        console.error("Hiba történt a mentés során:", err);
+      }
+    });
+  }
+}</code></pre>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header">
+                        <span>tanulo-form.html</span>
+                        <button class="copy-btn" onclick="copyCode('code-form-html')">Másolás</button>
+                    </div>
+                    <pre><code id="code-form-html" class="language-xml">&lt;p&gt;Új tanuló felvétele&lt;/p&gt;
+
+&lt;div&gt;
+  &lt;div class="max-w-md mx-auto mt-10 bg-white shadow-lg rounded-lg overflow-hidden"&gt;
+    &lt;div class="text-2xl py-4 px-6 bg-green-600 text-white text-center font-bold uppercase"&gt;
+        Tanuló Regisztráció
+    &lt;/div&gt;
+    
+    &lt;form #newStudentForm="ngForm" class="py-4 px-6" (ngSubmit)="onSubmit(newStudentForm)"&gt;
+        
+        &lt;div class="mb-4"&gt;
+            &lt;label class="block text-gray-700 font-bold mb-2" for="azonosito"&gt;
+                Oktatási azonosító
+            &lt;/label&gt;
+            &lt;input
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="azonosito" type="text" required name="oktazon" ngModel/&gt;
+
+            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="nev"&gt;
+                Név
+            &lt;/label&gt;
+            &lt;input
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="nev" type="text" required name="nev" ngModel/&gt;
+        &lt;/div>
+
+        &lt;div class="mb-4"&gt;
+            &lt;label class="block text-gray-700 font-bold mb-2" for="hozott"&gt;
+                Hozott pontszám
+            &lt;/label&gt;
+            &lt;input
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="hozott" type="number" required name="hozott" ngModel/&gt;
+
+            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="kpmagy"&gt;
+                Központi Magyar pont
+            &lt;/label&gt;
+            &lt;input
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="kpmagy" type="number" required name="kpmagy" ngModel/&gt;
+
+            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="kpmat"&gt;
+                Központi Matek pont
+            &lt;/label&gt;
+            &lt;input
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="kpmat" type="number" required name="kpmat" ngModel/&gt;
+        &lt;/div&gt;
+
+        &lt;div class="flex items-center justify-center mb-4"&gt;
+            &lt;button
+                [disabled]="!newStudentForm.valid"
+                class="bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-gray-800 focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
+                type="submit"&gt;
+                Mentés
+            &lt;/button&gt;
+        &lt;/div&gt;
+
+    &lt;/form&gt;
+  &lt;/div&gt;
 &lt;/div&gt;</code></pre>
                 </div>
             </div>
