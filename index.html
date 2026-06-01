@@ -494,6 +494,14 @@ import { TanuloService, Tanulo } from '../../services/tanulo-service'; // <-- Ja
 import { CommonModule } from '@angular/common';
 import { TanuloCard } from "../tanulo-card/tanulo-card";
 
+    export interface Tanulo {
+  oktazon: number;
+  nev: string;
+  hozott: number;
+  kpmagy: number;
+  kpmat: number;
+}
+
 @Component({
   selector: 'app-tanulok',
   standalone: true,
@@ -536,6 +544,14 @@ export class Tanulok implements OnInit {
                     </div>
                     <pre><code id="code-card-ts" class="language-typescript">import { Component, Input, OnInit } from '@angular/core';
 import { TanuloService, Tanulo } from '../../services/tanulo-service'; // <-- Javítva: Tanulo importálva!
+
+    export interface Tanulo { // importálva is jó, de azért beillesztem ide is a biztonság kedvéért
+  oktazon: number;
+  nev: string;
+  hozott: number;
+  kpmagy: number;
+  kpmat: number;
+}
 
 @Component({
   selector: 'app-tanulo-card',
