@@ -246,7 +246,6 @@
                         <button class="copy-btn" onclick="copyCode('code-sqlite3')">Másolás</button>
                     </div>
                     <pre><code id="code-sqlite3" class="language-javascript">import express from 'express';
-import express from 'express';
 import cors from 'cors';
 import sqlite3 from 'sqlite3';
 
@@ -266,104 +265,70 @@ app.listen(port, () => {
 });
 
 app.get(`/films`, (req, res) => {
-    try
-    {
+    try {
         let {limit, offset} = req.query;
 
-        if (!limit || !offset)
-        {
+        if (!limit || !offset) {
             limit = 50;
             offset = 0;
         }
 
-        if (typeof limit !== "number" || typeof offset !== "number")
-        {
+        if (typeof limit !== "number" || typeof offset !== "number") {
             return res.status(400).json({error: "The parameters have invalid datatypes"})
         }
 
         const sql = `select * from film`
 
         db.all(sql, [], function(error, rows) {
-            
-            if (error)
-            {
+            if (error) {
                 return res.status(400).json({error: error.message})
             }
-
             return res.status(200).json(rows)
         })
     }
-    catch (error)
-    {
+    catch (error) {
         return res.status(400).json({error: error.message})
     }
 })
 
 app.get(`/films/:id`, (req, res) => {
-    try
-    {
+    try {
         const { id } = req.params;
 
-        if (!id)
-        {
+        if (!id) {
             return res.status(400).json({message: `invalid parameter`})
         }
 
         const sql = `select * from film where film_id = ?`
 
         db.all(sql, [parseInt(id)], function(error, rows) {
-
-            if (error)
-            {
+            if (error) {
                 return res.status(404).json({error: error.message})
             }
 
-            if (rows.length > 0)
-            {
+            if (rows.length > 0) {
                 return res.status(200).json(rows)
-            }
-            else
-            {
+            } else {
                 return res.status(404).json({error: "Nincs ilyen film."})
             }
-            
         })
     }
-    catch (error)
-    {
+    catch (error) {
         return res.status(404).json({error: error.message})
     }
 })
 
 app.post(`/films`, (req, res) => {
-    try
-    {
+    try {
         const {
-            film_id,
-            title,
-            description,
-            release_year,
-            language_id, 
-            original_language_id, 
-            rental_duration, 
-            rental_rate, 
-            length, 
-            replacement_cost, 
-            rating, 
-            special_features} = req.body
+            film_id, title, description, release_year, language_id, 
+            original_language_id, rental_duration, rental_rate, length, 
+            replacement_cost, rating, special_features
+        } = req.body
 
-        if (
-            !film_id ||
-            !title ||
-            !description ||
-            !release_year ||
-            !language_id ||
-            !rental_duration ||
-            !rental_rate ||
-            !length ||
-            !replacement_cost ||
-            !rating ||
-            !special_features)
+        if (!film_id || !title || !description || !release_year || !language_id ||
+            !rental_duration || !rental_rate || !length || !replacement_cost ||
+            !rating || !special_features) 
         {
             return res.status(400).json({error: `Egy kötelező paraméter hiányzik.`})
         }
@@ -375,275 +340,295 @@ app.post(`/films`, (req, res) => {
             replacement_cost, rating, special_features, last_update) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
 
         db.run(sql, [film_id, title, description, release_year, language_id, rental_duration, rental_rate, length, replacement_cost, rating, special_features, date], function(error, rows) {
-
-            if (error)
-            {
+            if (error) {
                 return res.status(400).json({error: error.message})                
             }
-
             return res.status(201).json({id: this.lastID})
         })
     }
-    catch (error)
-    {
+    catch (error) {
         return res.status(400).json({error: error.message})
     }
 })
 
-
-let inOperator_List = ""
-
 app.get(`/category-films/:category_id`, (req, res) => {
-    try
-    {
+    try {
         const {category_id} = req.params;
         const category_id_num = Number(category_id)
         const sql_getCategory = `select film.* from film join film_category on film.film_id = film_category.film_id where film_category.category_id = ?`
-        const category = db.all(sql_getCategory, [category_id_num], function(error, rows) {
-
-            if (error)
-            {
+        
+        db.all(sql_getCategory, [category_id_num], function(error, rows) {
+            if (error) {
                 return res.status(400).json({error: error.message})
             }
-            return res.status(200).json(rows)
-
-            //console.log(rows)
-            /*
-            let filmInfos = []
-            let completed = 0
-            for (let item of rows)
-            {
-                const categoryString = db.all(`select * from film where film_id = ?`, [item.film_id], function(error_, rows_) {
-
-                    if (error_)
-                    {
-                        return res.status(400).json({error: error_.message})
-                    }
-                    console.log(item.film_id)
-                    //console.log(rows_)
-                    //return res.status(200).json(rows_)
-                    filmInfos.push(rows_[0])
-                    completed++
-                    if (completed === rows.length)
-                    {
-                        console.log(filmInfos)
-                    }
-                })
-            }
-            console.log(filmInfos)
-            return res.status(200).json(filmInfos)
-*/
-            //console.log(inOperator_List.slice(0, -2))
-
-            //console.log(`IN(${inOperator_List.slice(0, -2)})`)
-
-        const sql = `select * from film where special_features like ?`;
-
-        db.all(sql, [`%${rows[0].name}%`], function(error2, rows2) {
             
-            if (error2)
-            {
-                return res.status(400).json({error: error2.message})
+            if (rows.length === 0) {
+                return res.status(200).json(rows);
             }
 
-            return res.status(200).json(rows2)
-        });
+            const sql = `select * from film where special_features like ?`;
+            db.all(sql, [`%${rows[0].name}%`], function(error2, rows2) {
+                if (error2) {
+                    return res.status(400).json({error: error2.message})
+                }
+                return res.status(200).json(rows2)
+            });
         })
-
-        
     }
-    catch (error)
-    {
+    catch (error) {
         return res.status(400).json({error: error.message})
     }
 })
 
 app.get(`/actors`, (req, res) => {
-
-    try
-    {
+    try {
         let {limit, offset} = req.query;
 
-        if (!limit || !offset)
-        {
+        if (!limit || !offset) {
             limit = 50;
             offset = 0;
         }
 
-    const sql = `select * from actor`
+        const sql = `select * from actor`
 
-    db.all(sql, [], function(error, rows) {
-
-        if (error)
-        {
-            return res.status(400).json({error: error.message})
-        }
-
-        return res.status(200).json(rows)
-    })    
+        db.all(sql, [], function(error, rows) {
+            if (error) {
+                return res.status(400).json({error: error.message})
+            }
+            return res.status(200).json(rows)
+        })    
     }
-    catch (error)
-    {
+    catch (error) {
         return res.status(400).json({error: error.message})
     }
-    
 })
 
 app.get(`/categories`, (req, res) => {
-    try
-    {
+    try {
         const sql = `select * from category`
 
         db.all(sql, [], function(error, rows) {
-            
-            if (error)
-            {
+            if (error) {
                 return res.status(400).json({error: error.message})
             }
-
             return res.status(200).json(rows)
         })
     }
-    catch (error)
-    {
+    catch (error) {
         return res.status(400).json({error: error.message})
     }
 })
 
 app.get(`/customers`, (req, res) => {
-    try
-    {
+    try {
         const sql = `select * from customer`
         db.all(sql, [], function(error, rows) {
-
-            if (error)
-            {
+            if (error) {
                 return res.status(400).json({error: error.message})
             }
-
             return res.status(200).json(rows)
         })
     }
-    catch (error)
-    {
+    catch (error) {
         return res.status(400).json({error: error.message})
     }
 })
 
 app.get(`/languages`, (req, res) => {
-    try
-    {
+    try {
         const sql = `select * from language`
         db.all(sql, [], function(error, rows) {
-
-            if (error)
-            {
+            if (error) {
                 return res.status(400).json({error: error.message})
             }
-
             return res.status(200).json(rows)
         })
     }
-    catch (error)
-    {
+    catch (error) {
         return res.status(400).json({error: error.message})
     }
 })
 
-
 app.get(`/film-actors/:id`, (req, res) => {
-
-
-    try
-    {
+    try {
         const { id } = req.params;
         const num_id = Number(id)
-        console.log(num_id)
 
         const sql_getFilm = `select actor.first_name FROM actor JOIN film_actor ON actor.actor_id = film_actor.actor_id WHERE film_actor.film_id = ?`
 
         db.all(sql_getFilm, [num_id], function(error, rows) {
-
-            if (error)
-            {
+            if (error) {
                 return res.status(400).json({error: error.message})
             }
-
             return res.status(200).json(rows)
         })
     }
-    catch (error)
-    {
+    catch (error) {
         return res.status(400).json({error: error.message})
     }
-
-    
 })
 
 app.post(`/actors`, (req, res) => {
+    try {
+        const {actor_id, first_name, last_name} = req.body;
 
-        try
-        {
-            const {actor_id, first_name, last_name} = req.body;
+        if (!actor_id || !first_name || !last_name) {
+            return res.status(400).json({message: "Hiányos paraméterek"})
+        }
 
-            if (!actor_id || !first_name || !last_name)
-            {
-                return res.status(400).json({message: "Hiányos paraméterek"})
+        const sql = `insert into actor (actor_id, first_name, last_name, last_update) values(?, ?, ?, ?)`
+        let date = new Date().toISOString()
+
+        db.run(sql, [actor_id, first_name, last_name, date], function(error ,rows) {
+            if (error) {
+                return res.status(400).json({message: error.message})
             }
-
-            const sql = `insert into actor (actor_id, first_name, last_name, last_update) values(?, ?, ?, ?)`
-
-            let date = new Date().toISOString()
-            console.log(date)
-
-            db.run(sql, [actor_id, first_name, last_name, date], function(error ,rows) {
-                if (error)
-                {
-                    return res.status(400).json({message: error.message})
-                }
-
-                return res.status(201).json(this.lastID)
-            })
-        }
-        catch (error)
-        {
-            return res.status(400).json({error: error.message})
-        }
-
+            return res.status(201).json(this.lastID)
+        })
+    }
+    catch (error) {
+        return res.status(400).json({error: error.message})
+    }
 })
 
 app.get(`/customer-rentals/:customer_id`, (req, res) => {
-
-    try
-    {
+    try {
         const { customer_id } = req.params;
 
-        if (!customer_id)
-        {
+        if (!customer_id) {
             return res.status(400).json({message: "Egy kötelező paraméter hiányzik."})
         }
 
         const sql = `select rental_id, rental_date, return_date from rental where customer_id = ?`
 
         db.all(sql, [customer_id], function(error, rows) {
-            
-            if (error)
-            {
+            if (error) {
                 return res.status(400).json(error.message)
             }
-
             return res.status(200).json(rows)
         })
     }
-    catch (error)
-    {
+    catch (error) {
         return res.status(400).json({error: error.message})
     }
-    
-    
 })</code></pre>
                 </div>
             </div>
+
+            <div class="doc-card">
+                <h2>2. Better-SQLite3 minta (Szinkron / Mozi hálózat kezelő API)</h2>
+                <p>Ez a példa a <code>better-sqlite3</code> csomagot használja szinkron módon egy mozinézési és filmnyilvántartó rendszerhez. VIZSGATIPP: Figyelj a metódusokra! Több soros válaszhoz <code>.all()</code>, egyetlen sorhoz <code>.get()</code>, adatmódosításhoz (INSERT, DELETE, UPDATE) pedig <code>.run()</code> kell.</p>
+                
+                <div class="code-container">
+                    <div class="code-header">
+                        <span>index.js (better-sqlite3)</span>
+                        <button class="copy-btn" onclick="copyCode('code-better-sqlite3')">Másolás</button>
+                    </div>
+                    <pre><code id="code-better-sqlite3" class="language-javascript">const cors = require('cors');
+const express = require('express');
+const Database = require('better-sqlite3');
+
+const app = express();
+app.use(express.json());
+
+// TODO 1: CORS engedélyezése (cors csomag)
+app.use(cors())
+
+// TODO 3: mozihalo.db adatbázis használata
+const db = new Database('mozihalo.db');
+
+// TODO 5: GET / – üdvözlő JSON üzenet
+app.get("/",  (req, res) => {
+  res.json({message: "Üdvözlés"});
+})
+
+// TODO 6: GET /filmek
+app.get("/filmek", (req, res) => {
+  try {
+    const sql = "select * from filmek";
+    const result = db.prepare(sql).all();
+    return res.status(200).json(result);
+  }
+  catch (error) {
+    return res.status(500).json(error.message);
+  }
+});
+
+// TODO 7: GET /vetites/:vazon (JOIN: fcim, mnev, varos)
+app.get("/vetites/:vazon", (req, res) => {
+  try {
+    const vazon = req.params.vazon;
+    const sql = "SELECT filmek.fcim, mozik.mnev, mozik.varos FROM vetitesek inner join mozik on mozik.mazon = vetitesek.mazon inner join filmek on filmek.fazon = vetitesek.fazon where vetitesek.vazon = ?";
+    const result = db.prepare(sql).get(Number(vazon));
+    return res.status(200).json(result);
+  }
+  catch (error) {
+    return res.status(500).json(error.message);
+  }
+});
+
+// TODO 8: POST /filmek
+app.post("/filmek", (req, res) => {
+  try {
+    const {fazon, fcim, rendezo, gyartasi_ev, mufaj, jegypont} = req.body;
+    const sql = "insert into filmek (fazon, fcim, rendezo, gyartasi_ev, mufaj, jegypont) values (?, ?, ?, ?, ?, ?)";
+    const result = db.prepare(sql).run(fazon, fcim, rendezo, gyartasi_ev, mufaj, jegypont);
+    return res.status(201).json({message: "Film sikeresen hozzáadva", id: result.lastInsertRowid});
+  }
+  catch (error) {
+    return res.status(500).json(error.message);
+  }
+})
+
+// TODO 9: DELETE /film/:fazon
+app.delete("/film/:fazon", (req, res) => {
+  try {
+    const fazon = Number(req.params.fazon);
+    const sql = "delete from filmek where fazon = ?";
+    const result = db.prepare(sql).run(fazon);
+    return res.status(200).json({message: "Film sikeresen törölve"});
+  }
+  catch (error) {
+    return res.status(500).json(error.message);
+  }
+})
+
+// TODO 10: POST /mozik
+app.post("/mozik", (req, res) => {
+  const {mazon, mnev, varos, termek_szama} = req.body;
+  try {
+    const sql = "insert into mozik (mazon, mnev, varos, termek_szama) values (?, ?, ?, ?)";
+    const result = db.prepare(sql).run(mazon, mnev, varos, termek_szama);
+    return res.status(201).json({message: "Mozi sikeresen hozzáadva", id: result.lastInsertRowid});
+  }
+  catch (error) {
+    return res.status(500).json(error.message);
+  }
+})
+
+// TODO 11: PATCH /vetites/:vazon
+app.patch("/vetites/:vazon", (req, res) => {
+  try {
+    const vazon = Number(req.params.vazon);
+    const {fazon, mazon, kezdete} = req.body;
+    const sql = "update vetitesek set fazon = ?, mazon = ?, kezdete = ? where vazon = ?";
+    const result = db.prepare(sql).run(fazon, mazon, kezdete, vazon);
+    return res.status(200).json({message: "Vetítés sikeresen frissítve"});
+  }
+  catch (error)
+  {
+    return res.status(500).json(error.message);
+  }
+})
+
+// TODO 2: 8000-es port
+const PORT = 8000;
+app.listen(PORT, () => {
+  console.log(`Szerver fut: http://localhost:${PORT}`);
+});</code></pre>
+                </div>
+            </div>
+
         </section>
 
         <hr>
@@ -860,18 +845,18 @@ export class TanuloForm {
             &lt;label class="block text-gray-700 font-bold mb-2" for="azonosito"&gt;Oktatási azonosító&lt;/label&gt;
             &lt;input class="shadow border rounded w-full py-2 px-3 text-gray-700" id="azonosito" type="text" required name="oktazon" ngModel/&gt;
 
-            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="nev"&gt;Név&lt;/label>
+            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="nev"&gt;Név&lt;/label&gt;
             &lt;input class="shadow border rounded w-full py-2 px-3 text-gray-700" id="nev" type="text" required name="nev" ngModel/&gt;
         &lt;/div&gt;
 
         &lt;div class="mb-4"&gt;
-            &lt;label class="block text-gray-700 font-bold mb-2" for="hozott"&gt;Hozott pontszám&lt;/label>
+            &lt;label class="block text-gray-700 font-bold mb-2" for="hozott"&gt;Hozott pontszám&lt;/label&gt;
             &lt;input class="shadow border rounded w-full py-2 px-3 text-gray-700" id="hozott" type="number" required name="hozott" ngModel/&gt;
 
-            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="kpmagy"&gt;KpMagy&lt;/label>
+            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="kpmagy"&gt;KpMagy&lt;/label&gt;
             &lt;input class="shadow border rounded w-full py-2 px-3 text-gray-700" id="kpmagy" type="number" required name="kpmagy" ngModel/&gt;
 
-            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="kpmat"&gt;KpMat&lt;/label>
+            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="kpmat"&gt;KpMat&lt;/label&gt;
             &lt;input class="shadow border rounded w-full py-2 px-3 text-gray-700" id="kpmat" type="number" required name="kpmat" ngModel/&gt;
         &lt;/div&gt;
 
