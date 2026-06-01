@@ -224,7 +224,7 @@
             <ul>
                 <li><a href="#backend">Backend</a></li>
                 <li><a href="#frontend">Frontend (Angular)</a></li>
-                <li><a href="#responsive" class="active">Reszponzív formázás</a></li>
+                <li><a href="#responsive">Reszponzív formázás</a></li>
                 <li><a href="#wpf-csharp" class="disabled">WPF C# Console</a></li>
             </ul>
         </nav>
@@ -393,7 +393,7 @@ app.listen(PORT, () => {
 
         <section id="frontend">
             <h1>Frontend Dokumentáció (Angular)</h1>
-            <p class="section-desc">Ezen a szekción az Angular CLI segítségével felépített kliensoldali alkalmazás lépéseit és az API-val való kommunikációt találod.</p>
+            <p class="section-desc">Ezen a szekción az Angular CLI segítségével felépített kliensoldali alkalmazás lépéseit, sablonjait és az API-val való kommunikációt találod meg.</p>
 
             <div class="doc-card">
                 <h2>1. Megelőző lépések & Projektszintű parancsok</h2>
@@ -470,7 +470,7 @@ export class TanuloService {
             </div>
 
             <div class="doc-card">
-                <h2>4. Fő lista komponens (tanulok.ts)</h2>
+                <h2>4. Fő lista komponens (tanulok)</h2>
                 <div class="code-container">
                     <div class="code-header">
                         <span>tanulok.ts</span>
@@ -499,10 +499,23 @@ export class Tanulok implements OnInit {
   }
 }</code></pre>
                 </div>
+
+                <div class="code-container">
+                    <div class="code-header">
+                        <span>tanulok.html</span>
+                        <button class="copy-btn" onclick="copyCode('code-tanulok-html')">Másolás</button>
+                    </div>
+                    <pre><code id="code-tanulok-html" class="language-xml">&lt;p&gt;tanulok&lt;/p&gt;
+&lt;div class="grid grid-cols-1 md:grid-cols-3 gap-4"&gt;
+  @for (tanulo of TanulokLista; track tanulo.oktazon) {
+    &lt;app-tanulo-card [tanuloInfo]="tanulo"&gt;&lt;/app-tanulo-card>
+  }
+&lt;/div&gt;</code></pre>
+                </div>
             </div>
 
             <div class="doc-card">
-                <h2>5. Gyermek kártya komponens (tanulo-card.ts)</h2>
+                <h2>5. Gyermek kártya komponens (tanulo-card)</h2>
                 <div class="code-container">
                     <div class="code-header">
                         <span>tanulo-card.ts</span>
@@ -531,6 +544,144 @@ export class TanuloCard implements OnInit {
   }
 }</code></pre>
                 </div>
+
+                <div class="code-container">
+                    <div class="code-header">
+                        <span>tanulo-card.html</span>
+                        <button class="copy-btn" onclick="copyCode('code-card-html')">Másolás</button>
+                    </div>
+                    <pre><code id="code-card-html" class="language-xml">&lt;div class="w-full max-w-md px-8 py-4 m-5 bg-green-300 rounded-lg shadow-lg"&gt;
+    &lt;h2 class="text-xl font-semibold text-gray-800"&gt;{{ tanuloInfo.nev }}&lt;/h2&gt;
+    &lt;p&gt;Oktatási azonosító: {{ tanuloInfo.oktazon }}&lt;/p&gt;
+    &lt;p&gt;Hozott pontok: {{ tanuloInfo.hozott }}&lt;/p&gt;
+    &lt;p&gt;KpMagy: {{ tanuloInfo.kpmagy }}&lt;/p&gt;
+    &lt;p&gt;KpMat: {{ tanuloInfo.kpmat }}&lt;/p&gt;
+    &lt;button class="bg-green-700 text-white px-4 py-2 rounded mt-2 hover:bg-green-800 transition-colors" (click)="torles()"&gt;Törlés&lt;/button&gt;
+&lt;/div&gt;</code></pre>
+                </div>
+            </div>
+
+            <div class="doc-card">
+                <h2>6. Adatfelvételi Űrlap (Template-driven Form)</h2>
+                <div class="code-container">
+                    <div class="code-header">
+                        <span>tanulo-form.ts</span>
+                        <button class="copy-btn" onclick="copyCode('code-form-ts')">Másolás</button>
+                    </div>
+                    <pre><code id="code-form-ts" class="language-typescript">import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms'; 
+import { TanuloService } from '../../services/tanulo-service';
+
+@Component({
+  selector: 'app-tanulo-form',
+  standalone: true,
+  imports: [FormsModule], 
+  templateUrl: './tanulo-form.html',
+})
+export class TanuloForm {
+  constructor(private TanuloService: TanuloService) {}
+
+  onSubmit(form: any) {
+    console.log(form.value);
+    this.TanuloService.addTanulo(form.value).subscribe({
+      next: (response) => { console.log("Sikeres hozzáadás:", response); },
+      error: (err) => { console.error("Hiba a hozzáadás során:", err); }
+    });
+  }
+}</code></pre>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header">
+                        <span>tanulo-form.html</span>
+                        <button class="copy-btn" onclick="copyCode('code-form-html')">Másolás</button>
+                    </div>
+                    <pre><code id="code-form-html" class="language-xml">&lt;div class="max-w-md mx-auto mt-10 bg-white shadow-lg rounded-lg overflow-hidden"&gt;
+    &lt;div class="text-2xl py-4 px-6 bg-green-600 text-white text-center font-bold uppercase"&gt;Új tanuló felvétele&lt;/div&gt;
+    &lt;form #newStudentForm="ngForm" class="py-4 px-6" (ngSubmit)="onSubmit(newStudentForm)"&gt;
+        &lt;div class="mb-4"&gt;
+            &lt;label class="block text-gray-700 font-bold mb-2" for="azonosito"&gt;Oktatási azonosító&lt;/label&gt;
+            &lt;input class="shadow border rounded w-full py-2 px-3 text-gray-700" id="azonosito" type="text" required name="oktazon" ngModel/&gt;
+
+            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="nev"&gt;Név&lt;/label>
+            &lt;input class="shadow border rounded w-full py-2 px-3 text-gray-700" id="nev" type="text" required name="nev" ngModel/&gt;
+        &lt;/div&gt;
+
+        &lt;div class="mb-4"&gt;
+            &lt;label class="block text-gray-700 font-bold mb-2" for="hozott"&gt;Hozott pontszám&lt;/label>
+            &lt;input class="shadow border rounded w-full py-2 px-3 text-gray-700" id="hozott" type="number" required name="hozott" ngModel/&gt;
+
+            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="kpmagy"&gt;KpMagy&lt;/label>
+            &lt;input class="shadow border rounded w-full py-2 px-3 text-gray-700" id="kpmagy" type="number" required name="kpmagy" ngModel/&gt;
+
+            &lt;label class="block text-gray-700 font-bold mb-2 mt-4" for="kpmat"&gt;KpMat&lt;/label>
+            &lt;input class="shadow border rounded w-full py-2 px-3 text-gray-700" id="kpmat" type="number" required name="kpmat" ngModel/&gt;
+        &lt;/div&gt;
+
+        &lt;div class="flex items-center justify-center mb-4"&gt;
+            &lt;button class="bg-green-600 text-white py-2 px-4 rounded hover:bg-gray-800 transition-colors" type="submit"&gt;Mentés&lt;/button>
+        &lt;/div&gt;
+    &lt;/form&gt;
+&lt;/div&gt;</code></pre>
+                </div>
+            </div>
+
+            <div class="doc-card">
+                <h2>7. Útvonalkezelés (Routing / Sablonnavigáció)</h2>
+                <h3>A) app.routes.ts</h3>
+                <div class="code-container">
+                    <div class="code-header">
+                        <span>app.routes.ts</span>
+                        <button class="copy-btn" onclick="copyCode('code-routes-ts')">Másolás</button>
+                    </div>
+                    <pre><code id="code-routes-ts" class="language-typescript">import { Routes } from '@angular/router';
+import { Main } from './components/main/main';
+import { Tanulok } from './components/tanulok/tanulok';
+import { TanuloForm } from './components/tanulo-form/tanulo-form';
+
+export const routes: Routes = [
+  { path: '', component: Main },
+  { path: "tanulok", component: Tanulok },
+  { path: 'tanuloForm', component: TanuloForm },
+  { path: '**', redirectTo: '' }
+];</code></pre>
+                </div>
+
+                <h3>B) Menü Komponens és Nézet</h3>
+                <div class="code-container">
+                    <div class="code-header">
+                        <span>menu.ts</span>
+                        <button class="copy-btn" onclick="copyCode('code-menu-ts')">Másolás</button>
+                    </div>
+                    <pre><code id="code-menu-ts" class="language-typescript">import { Component } from '@angular/core';
+import { RouterOutlet, RouterLink } from '@angular/router'; 
+
+@Component({
+  standalone: true,
+  selector: 'app-menu',
+  imports: [RouterOutlet, RouterLink], 
+  templateUrl: './menu.html',
+})
+export class Menu {}</code></pre>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header">
+                        <span>menu.html</span>
+                        <button class="copy-btn" onclick="copyCode('code-menu-html')">Másolás</button>
+                    </div>
+                    <pre><code id="code-menu-html" class="language-xml">&lt;nav class="bg-green-600 p-4 shadow-md"&gt;
+  &lt;div class="container mx-auto flex justify-between items-center"&gt;
+    &lt;h1 class="text-white text-xl font-semibold"&gt;Navigáció&lt;/h1&gt;
+    &lt;div class="flex space-x-6"&gt;
+      &lt;a routerLink="/" class="text-white hover:text-green-100 transition-colors"&gt;Főoldal&lt;/a&gt;
+      &lt;a routerLink="/tanulok" class="text-white hover:text-green-100 transition-colors"&gt;Tanulók&lt;/a&gt;
+      &lt;a routerLink="/tanuloForm" class="text-white hover:text-green-100 transition-colors"&gt;Új tanuló&lt;/a&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/nav&gt;
+&lt;router-outlet&gt;&lt;/router-outlet&gt;</code></pre>
+                </div>
             </div>
         </section>
 
@@ -539,6 +690,19 @@ export class TanuloCard implements OnInit {
         <section id="responsive">
             <h1>Reszponzív formázás (Tailwind CSS)</h1>
             <p class="section-desc">A modern webfejlesztés elengedhetetlen része az eszközökhöz alkalmazkodó elrendezés. A Tailwind a Mobile-First elvet követi.</p>
+
+            <div class="doc-card">
+                <h2>Tailwind Play CDN (Beillesztés a Head részbe)</h2>
+                <p>Ezt a script sort kell bemásolnod az <code>index.html</code> fájlod <code>&lt;head&gt;</code> részébe, hogy azonnal működjenek a Tailwind osztályok külön telepítés nélkül:</p>
+                
+                <div class="code-container">
+                    <div class="code-header">
+                        <span>HTML Head részlet</span>
+                        <button class="copy-btn" onclick="copyCode('code-cdn-script')">Másolás</button>
+                    </div>
+                    <pre><code id="code-cdn-script" class="language-xml">&lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;</code></pre>
+                </div>
+            </div>
 
             <div class="doc-card">
                 <h2>1. Alapvető Breakpointok (Képernyőméretek)</h2>
@@ -578,7 +742,10 @@ export class TanuloCard implements OnInit {
 
         function copyCode(elementId) {
             const codeText = document.getElementById(elementId).innerText;
-            navigator.clipboard.writeText(codeText).then(() => {
+            const parser = new DOMParser();
+            const decodedText = parser.parseFromString(codeText, 'text/html').body.textContent;
+            
+            navigator.clipboard.writeText(decodedText).then(() => {
                 alert("Kód sikeresen kimásolva a vágólapra!");
             }).catch(err => {
                 console.error("Hiba történt a másolás során: ", err);
